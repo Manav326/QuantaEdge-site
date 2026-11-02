@@ -55,8 +55,8 @@ test.describe("QuantaEdge corporate website", () => {
       });
       imageDiagnostics.push(decoded);
       expect(decoded.complete, "Product image " + index + " should finish loading").toBe(true);
-      expect(decoded.naturalWidth, "Product image " + index + " should decode to a usable width").toBeGreaterThan(0);
-      expect(decoded.naturalHeight, "Product image " + index + " should decode to a usable height").toBeGreaterThan(0);
+      expect(decoded.naturalWidth, "Product image " + index + " should decode to a usable width").toBeGreaterThanOrEqual(400);
+      expect(decoded.naturalHeight, "Product image " + index + " should decode to a usable height").toBeGreaterThanOrEqual(240);
     }
     console.log("Product image dimensions:", JSON.stringify(imageDiagnostics));
     await page.screenshot({
