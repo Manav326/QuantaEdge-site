@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Privacy notice", description: "How Q
 export default function PrivacyPage() {
   return (
     <main className="legal-page">
-      <Link className="brand-lockup" href="/" aria-label="QuantaEdge home"><span className="brand-mark">Q<span>E</span></span><span className="brand-name">QUANTAEDGE</span></Link>
+      <Link className="brand-lockup" href="/" aria-label="QuantaEdge home"><span className="brand-mark">Q<span>E</span></span><span className="brand-wordmark">QUANTAEDGE</span></Link>
       <p className="eyebrow">WEBSITE INFORMATION</p>
       <h1>Privacy notice</h1>
       <p className="legal-lead">We keep this website’s data collection simple. We use the information you choose to share with us to understand and respond to your enquiry.</p>

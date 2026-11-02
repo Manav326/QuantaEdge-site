@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test";
 
+async function revealEntirePage(page: import("@playwright/test").Page) {
+  const dimensions = await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    document.body.style.scrollBehavior = "auto";
+    return { height: document.documentElement.scrollHeight, viewport: window.innerHeight };
+  });
+  const step = Math.max(360, Math.floor(dimensions.viewport * 0.75));
+  for (let top = 0; top < dimensions.height; top += step) {
+    await page.evaluate((y) => window.scrollTo(0, y), top);
+    await page.waitForTimeout(70);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(120);
+}
+
+
 test.describe("QuantaEdge corporate website", () => {
   test("desktop: renders the corporate story and all four product showcases", async ({ page }, testInfo) => {
     const pageErrors: string[] = [];
@@ -21,6 +37,7 @@ test.describe("QuantaEdge corporate website", () => {
     await expect(page.locator(".architecture-intro h3")).toHaveText("Learning systems");
     await expect(page.locator(".architecture-detail")).toContainText("verified source material");
 
+    await revealEntirePage(page);
     await page.screenshot({
       path: testInfo.outputPath("desktop-home.png"),
       fullPage: true,
@@ -54,6 +71,7 @@ test.describe("QuantaEdge corporate website", () => {
     expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
     expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport + 1);
 
+    await revealEntirePage(page);
     await page.screenshot({
       path: testInfo.outputPath("mobile-home.png"),
       fullPage: true,
@@ -116,3 +134,13 @@ test.describe("QuantaEdge corporate website", () => {
     await expect(response.json()).resolves.toMatchObject({ error: "Enter a valid email address." });
   });
 });
+
+  
+  test("reduced-motion preference is respected", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const duration = await page.locator(".hero-float-card").first().evaluate((element) => getComputedStyle(element).animationDuration);
+    const durationMs = duration.endsWith("ms") ? Number.parseFloat(duration) : Number.parseFloat(duration) * 1000;
+    expect(durationMs).toBeLessThan(1);
+    await expect(page.getByRole("heading", { name: "Engineering that matters." })).toBeVisible();
+  });
