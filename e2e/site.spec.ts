@@ -38,6 +38,14 @@ test.describe("QuantaEdge corporate website", () => {
     await expect(page.locator(".architecture-detail")).toContainText("verified source material");
 
     await revealEntirePage(page);
+    const productImages = await page.locator(".product-photo").evaluateAll((images) =>
+      images.map((image) => {
+        const img = image as HTMLImageElement;
+        return { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight };
+      })
+    );
+    expect(productImages).toHaveLength(4);
+    expect(productImages.every((image) => image.complete && image.naturalWidth >= 400 && image.naturalHeight >= 240)).toBe(true);
     await page.screenshot({
       path: testInfo.outputPath("desktop-home.png"),
       fullPage: true,
