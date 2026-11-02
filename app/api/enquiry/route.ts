@@ -50,9 +50,11 @@ export async function POST(request: Request) {
     ["Phone", enquiry.phone || "Not provided"], ["Area of interest", enquiry.interest],
     ["Budget", enquiry.budget || "Not specified"], ["Timeline", enquiry.timeline || "Not specified"], ["Project brief", enquiry.message],
   ];
-  const subject = \`New \${enquiry.interest.replace(/[\r\n]+/g, " ")} enquiry — \${enquiry.name.replace(/[\r\n]+/g, " ")}\`;
-  const html = \`<!doctype html><html><body style="font-family:Arial,sans-serif;color:#142238;line-height:1.6"><h2>New QuantaEdge website enquiry</h2><table cellpadding="8" cellspacing="0" style="border-collapse:collapse">\${fields.map(([label, value]) => \`<tr><th align="left" valign="top" style="border-bottom:1px solid #e4eaf2">\${escapeHtml(label)}</th><td style="border-bottom:1px solid #e4eaf2">\${escapeHtml(value).replace(/\n/g, "<br>")}</td></tr>\`).join("")}</table></body></html>\`;
-
+  const subject = "New " + enquiry.interest.replace(/[\r\n]+/g, " ") + " enquiry — " + enquiry.name.replace(/[\r\n]+/g, " ");
+  const rows = fields.map(([label, value]) => {
+    return "<tr><th align=\\"left\\" valign=\\"top\\" style=\\"border-bottom:1px solid #e4eaf2\\">" + escapeHtml(label) + "</th><td style=\\"border-bottom:1px solid #e4eaf2\\">" + escapeHtml(value).replace(/\n/g, "<br>") + "</td></tr>";
+  }).join("");
+  const html = "<!doctype html><html><body style=\\"font-family:Arial,sans-serif;color:#142238;line-height:1.6\\"><h2>New QuantaEdge website enquiry</h2><table cellpadding=\\"8\\" cellspacing=\\"0\\" style=\\"border-collapse:collapse\\">" + rows + "</table></body></html>";
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
