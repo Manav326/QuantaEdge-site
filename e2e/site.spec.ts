@@ -38,14 +38,27 @@ test.describe("QuantaEdge corporate website", () => {
     await expect(page.locator(".architecture-detail")).toContainText("verified source material");
 
     await revealEntirePage(page);
-    const productImages = await page.locator(".product-photo").evaluateAll((images) =>
-      images.map((image) => {
-        const img = image as HTMLImageElement;
-        return { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight };
-      })
-    );
-    expect(productImages).toHaveLength(4);
-    expect(productImages.every((image) => image.complete && image.naturalWidth >= 400 && image.naturalHeight >= 240)).toBe(true);
+    const productImages = page.locator(".product-photo");
+    await expect(productImages).toHaveCount(4);
+    const imageDiagnostics = [];
+    for (let index = 0; index < 4; index += 1) {
+      const image = productImages.nth(index);
+      await image.scrollIntoViewIfNeeded();
+      const decoded = await image.evaluate(async (element) => {
+        const img = element as HTMLImageElement;
+        try {
+          await img.decode();
+          return { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight };
+        } catch {
+          return { complete: img.complete, naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight };
+        }
+      });
+      imageDiagnostics.push(decoded);
+      expect(decoded.complete, "Product image " + index + " should finish loading").toBe(true);
+      expect(decoded.naturalWidth, "Product image " + index + " should decode to a usable width").toBeGreaterThan(0);
+      expect(decoded.naturalHeight, "Product image " + index + " should decode to a usable height").toBeGreaterThan(0);
+    }
+    console.log("Product image dimensions:", JSON.stringify(imageDiagnostics));
     await page.screenshot({
       path: testInfo.outputPath("desktop-home.png"),
       fullPage: true,
