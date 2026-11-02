@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Typecheck and production build
+    name: Typecheck, production build and browser QA
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +27,26 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Install Chromium for browser QA
+        run: npx playwright install --with-deps chromium
       - name: TypeScript validation
         run: npm run typecheck
       - name: Production build
         run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Desktop and mobile browser tests
+        run: npm run test:e2e
+        env:
+          CI: true
+          NEXT_TELEMETRY_DISABLED: 1
+      - name: Upload browser QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quantaedge-browser-qa
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
