@@ -52,7 +52,7 @@ The script creates `.env` from `.env.example` on first run and never overwrites 
 1. Open GitHub Actions and run **QuantaEdge Site Release** from the intended source branch.
 2. Enter a version such as `v1.0.0`. The workflow builds the image and publishes version, commit-SHA and `latest` tags to `ghcr.io/manav326/quantaedge-site`.
 3. Before publishing, optionally define the GitHub Actions repository variable `NEXT_PUBLIC_CONTACT_EMAIL` under Settings → Secrets and variables → Actions → Variables if the public email link should appear in the footer. This value is embedded in the image at build time. After the first package is published, open the package in GitHub Packages and set its visibility to **Public** if you want unauthenticated GHCR pulls. Otherwise, authenticate Docker on the local machine with a GitHub token that has `read:packages`.
-4. Run the immutable version locally:
+4. Run the versioned release locally:
 
 ```powershell
 .\scripts\quantaedge-site.ps1 up -ImageTag v1.0.0
@@ -106,7 +106,7 @@ Add a Cloudflare zone rate-limiting rule for URI path `/api/enquiry`, using IP a
 
 - There is no application database or uploaded customer file store in this website; the container has no persistent volume. Enquiry delivery goes to Resend only after the provider accepts it.
 - Keep a secure backup of `.env` outside the repository. It contains deployment configuration and email credentials.
-- Prefer immutable version tags for deployments. `latest` is a convenience tag, not a rollback reference.
+- Prefer unique version tags for deployments; the release workflow refuses to overwrite an existing version tag. `latest` is a convenience tag, not a rollback reference.
 - Cloudflare Tunnel routing, DNS, redirect rules and dashboard rate limits are configured in the Cloudflare account; the local script does not modify those account settings.
 - The website remains available only while the Windows host, Docker Desktop and the existing tunnel connector are running.
 
