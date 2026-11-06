@@ -8,6 +8,11 @@ services:
     init: true
     ports:
       - "${HOST_BIND_ADDRESS:-127.0.0.1}:${SITE_PORT:-13003}:3000"
+    networks:
+      default: {}
+      cloudflare-edge:
+        aliases:
+          - corporate-site
     environment:
       NODE_ENV: production
       PORT: "3000"
@@ -24,3 +29,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  cloudflare-edge:
+    external: true
+    name: cloudflare-edge
