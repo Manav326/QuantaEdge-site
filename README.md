@@ -45,13 +45,13 @@ git pull origin main
 .\scripts\quantaedge-site.ps1 logs
 ```
 
-The script creates `.env` from `.env.example` on first run and never overwrites an existing `.env`. Edit it to configure Resend before expecting enquiries to be emailed. The site can start without Resend; the form will honestly report that email delivery is not configured and keep the brief copyable.
+The script creates `.env` from `.env.example` on first run and never overwrites an existing `.env`. Edit it to configure Resend before expecting enquiries to be emailed. The site can start without Resend; the form will honestly report that email delivery is not configured and keep the brief copyable. For a local source build, `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_CONTACT_EMAIL` in `.env` are supplied as build arguments. These `NEXT_PUBLIC_*` values are embedded at build time; editing `.env` does not change an already-built GHCR image.
 
 ### Publish and run a versioned GHCR image
 
 1. Open GitHub Actions and run **QuantaEdge Site Release** from the intended source branch.
 2. Enter a version such as `v1.0.0`. The workflow builds the image and publishes version, commit-SHA and `latest` tags to `ghcr.io/manav326/quantaedge-site`.
-3. After the first package is published, open the package in GitHub Packages and set its visibility to **Public** if you want unauthenticated GHCR pulls. Otherwise, authenticate Docker on the local machine with a GitHub token that has `read:packages`.
+3. Before publishing, optionally define the GitHub Actions repository variable `NEXT_PUBLIC_CONTACT_EMAIL` under Settings → Secrets and variables → Actions → Variables if the public email link should appear in the footer. This value is embedded in the image at build time. After the first package is published, open the package in GitHub Packages and set its visibility to **Public** if you want unauthenticated GHCR pulls. Otherwise, authenticate Docker on the local machine with a GitHub token that has `read:packages`.
 4. Run the immutable version locally:
 
 ```powershell
