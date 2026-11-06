@@ -67,6 +67,37 @@ test.describe("QuantaEdge corporate website", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("product links open their public live sites and never route visitors to GitHub", async ({ page }) => {
+    await page.goto("/");
+
+    const destinations = [
+      { name: "mPay", url: "https://mpay.quantaedge.in/" },
+      { name: "QuantaEdge Learning", url: "https://qe.quantaedge.in/" },
+      { name: "Lucky Bajaj Dealership", url: "https://lucky-bajaj-customer-web.onrender.com/" },
+      { name: "SmartPrint", url: "https://smartprint.quantaedge.in/" }
+    ];
+
+    const footerProducts = page.locator(".footer-links > div:nth-child(3)");
+    for (const product of destinations) {
+      const card = page.locator(".product-card").filter({
+        has: page.getByRole("heading", { name: product.name, exact: true })
+      });
+      await expect(card).toHaveCount(1);
+
+      const cardLink = card.getByRole("link", { name: `Visit ${product.name} live site` });
+      await expect(cardLink).toHaveAttribute("href", product.url);
+      await expect(cardLink).toHaveAttribute("target", "_blank");
+      await expect(cardLink).toHaveAttribute("rel", "noopener noreferrer");
+
+      const footerLink = footerProducts.getByRole("link", { name: `Visit ${product.name} live site` });
+      await expect(footerLink).toHaveAttribute("href", product.url);
+      await expect(footerLink).toHaveAttribute("target", "_blank");
+      await expect(footerLink).toHaveAttribute("rel", "noopener noreferrer");
+    }
+
+    await expect(page.locator('a[href*="github.com"]')).toHaveCount(0);
+  });
+
   test("mobile: navigation, layout width and interactive architecture remain usable", async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
