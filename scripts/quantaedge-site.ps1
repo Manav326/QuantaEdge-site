@@ -20,6 +20,13 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
   throw "Docker CLI was not found. Install/start Docker Desktop, then run this script again."
 }
 
+if ($Action -in @("up", "sync", "rebuild")) {
+  & docker network inspect cloudflare-edge *> $null
+  if ($LASTEXITCODE -ne 0) {
+    throw "The shared Docker network 'cloudflare-edge' is missing. Start it through the QuantaEdge-Production central ingress manager before starting product stacks."
+  }
+}
+
 if (-not [string]::IsNullOrWhiteSpace($ImageTag)) {
   if ($ImageTag -notmatch '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$') {
     throw "Invalid -ImageTag. Use a version such as v1.0.0 or a full SHA tag."
