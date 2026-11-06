@@ -42,6 +42,23 @@ jobs:
           CI: true
           NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_SITE_URL: https://quantaedge.in
+      - name: Validate deployment script syntax
+        shell: bash
+        run: bash -n scripts/quantaedge-site.sh
+      - name: Parse Windows deployment script
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/quantaedge-site.ps1'),
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
       - name: Validate production Compose configuration
         run: |
           docker compose -f docker-compose.yml config --quiet
