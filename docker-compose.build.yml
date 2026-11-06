@@ -1,6 +1,7 @@
 # Local-source build overlay. The default Compose file pulls the published GHCR image.
 services:
   site:
+    pull_policy: build
     build:
       context: .
       dockerfile: Dockerfile
