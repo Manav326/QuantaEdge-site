@@ -38,8 +38,14 @@ This repository deploys as **one stateless Next.js container**. It does not need
 
 ### Windows PowerShell — build from the checkout
 
+Start the shared Cloudflare ingress once from the sibling `QuantaEdge-Production` checkout. That control-plane owns the only Tunnel connector and the external Docker network `cloudflare-edge`; product stacks do not start their own connector.
+
 ```powershell
-git pull origin main
+# From D:\Projects\QuantaEdge-Production
+.\scripts\local-ingress.ps1 up
+
+# From D:\Projects\QuantaEdge-site
+git pull --ff-only origin main
 .\scripts\quantaedge-site.ps1 up -BuildLocal
 .\scripts\quantaedge-site.ps1 health
 .\scripts\quantaedge-site.ps1 logs
@@ -85,12 +91,12 @@ Bash/Git Bash equivalents are available in `scripts/quantaedge-site.sh`. Use `--
 
 Use the existing QuantaEdge Cloudflare Tunnel; do not create a second tunnel just for this website. Add these published-application hostnames in the existing tunnel:
 
-| Public hostname | Origin service |
+| Public hostname | Published Application service URL |
 |---|---|
-| `quantaedge.in` | `http://localhost:13003` |
-| `www.quantaedge.in` | `http://localhost:13003` |
+| `quantaedge.in` | `http://corporate-site:3000` |
+| `www.quantaedge.in` | `http://corporate-site:3000` |
 
-The local origin is HTTP because Cloudflare Tunnel provides the public HTTPS endpoint. Configure a Cloudflare redirect rule to send `www.quantaedge.in/*` to `https://quantaedge.in/$1` with a 301 or 308 redirect. If `cloudflared` runs inside Docker rather than as a Windows host service, do not assume `localhost:13003` reaches the host; use an origin address/network reachable from that tunnel container and keep the route restricted to the tunnel.
+Both routes resolve the `corporate-site` alias on the shared external Docker network `cloudflare-edge`. The container still binds `127.0.0.1:13003` for local Windows testing, but the Docker-based Tunnel connector must not target `localhost:13003`: inside the connector, localhost is the connector container itself. The local ingress network and connector are owned by `QuantaEdge-Production`; see its `docs/local-cloudflare-tunnel.md`. Configure a Cloudflare redirect rule to send `www.quantaedge.in/*` to `https://quantaedge.in/$1` with a 301 or 308 redirect.
 
 ### Enquiry delivery and edge protection
 
