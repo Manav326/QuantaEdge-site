@@ -1,0 +1,24 @@
+# Git and CI metadata
+.git
+.github
+
+# Dependencies and generated Next.js output
+node_modules
+.next
+out
+dist
+coverage
+
+# Browser test output and test source
+e2e
+playwright-report
+test-results
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Local noise
+*.log
+.DS_Store

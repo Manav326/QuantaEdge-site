@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Typecheck, production build and browser QA
+    name: Typecheck, build, browser QA and container smoke test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,11 +35,46 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SITE_URL: https://quantaedge.in
       - name: Desktop and mobile browser tests
         run: npm run test:e2e
         env:
           CI: true
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_SITE_URL: https://quantaedge.in
+      - name: Validate production Compose configuration
+        run: |
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.yml -f docker-compose.build.yml config --quiet
+      - name: Build the production container
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SITE_URL=https://quantaedge.in \
+            --tag quantaedge-site:ci .
+      - name: Smoke-test the running container
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker rm -f quantaedge-site-ci >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          docker run -d --name quantaedge-site-ci -p 127.0.0.1:13003:3000 quantaedge-site:ci
+          ready=false
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:13003/api/health >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != "true" ]]; then
+            docker logs quantaedge-site-ci
+            echo "Container health endpoint did not become ready." >&2
+            exit 1
+          fi
+          curl --fail --show-error http://127.0.0.1:13003/api/health
+          curl --fail --silent --show-error http://127.0.0.1:13003/ >/dev/null
       - name: Upload browser QA artifacts
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,28 @@
+name: quantaedge-site
+
+services:
+  site:
+    image: ${SITE_IMAGE:-ghcr.io/manav326/quantaedge-site}:${IMAGE_TAG:-latest}
+    pull_policy: missing
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${SITE_PORT:-13003}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://quantaedge.in}
+      NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+      ENQUIRY_TO_EMAIL: ${ENQUIRY_TO_EMAIL:-}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
