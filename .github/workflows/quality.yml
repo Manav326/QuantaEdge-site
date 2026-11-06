@@ -63,35 +63,19 @@ jobs:
         run: |
           docker compose -f docker-compose.yml config --quiet
           docker compose -f docker-compose.yml -f docker-compose.build.yml config --quiet
-      - name: Build the production container
+      - name: Start local deployment with the Windows manager
+        shell: pwsh
         run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_SITE_URL=https://quantaedge.in \
-            --tag quantaedge-site:ci .
-      - name: Smoke-test the running container
-        shell: bash
+          pwsh -NoProfile -File scripts/quantaedge-site.ps1 up -BuildLocal -SitePort 13003
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke-test the homepage through loopback
+        run: curl --fail --show-error http://127.0.0.1:13003/ --output /dev/null
+      - name: Stop the CI deployment
+        if: always()
+        shell: pwsh
         run: |
-          set -euo pipefail
-          cleanup() {
-            docker rm -f quantaedge-site-ci >/dev/null 2>&1 || true
-          }
-          trap cleanup EXIT
-          docker run -d --name quantaedge-site-ci -p 127.0.0.1:13003:3000 quantaedge-site:ci
-          ready=false
-          for attempt in $(seq 1 45); do
-            if curl --fail --silent http://127.0.0.1:13003/api/health >/dev/null; then
-              ready=true
-              break
-            fi
-            sleep 2
-          done
-          if [[ "$ready" != "true" ]]; then
-            docker logs quantaedge-site-ci
-            echo "Container health endpoint did not become ready." >&2
-            exit 1
-          fi
-          curl --fail --show-error http://127.0.0.1:13003/api/health
-          curl --fail --silent --show-error http://127.0.0.1:13003/ >/dev/null
+          pwsh -NoProfile -File scripts/quantaedge-site.ps1 down -SitePort 13003
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload browser QA artifacts
         if: always()
         uses: actions/upload-artifact@v4
