@@ -99,7 +99,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and publish immutable version and commit tags
+      - name: Refuse to overwrite an existing version tag
+        env:
+          IMAGE: ${{ steps.release.outputs.image }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if docker buildx imagetools inspect "$IMAGE:$VERSION" >/dev/null 2>&1; then
+            echo "::error::Release tag $IMAGE:$VERSION already exists. Choose a new version; published release tags are not overwritten."
+            exit 1
+          fi
+
+      - name: Build and publish versioned release and commit tags
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -137,5 +147,5 @@ jobs:
             echo "- Commit image: \`$IMAGE:$SHA_TAG\`"
             echo "- Convenience tag: \`$IMAGE:latest\`"
             echo
-            echo "The local deployment can use the immutable version tag for releases and rollbacks."
+            echo "The local deployment can use the unique version tag for releases and rollbacks. The workflow refuses to overwrite a version tag that already exists."
           } >> "$GITHUB_STEP_SUMMARY"
