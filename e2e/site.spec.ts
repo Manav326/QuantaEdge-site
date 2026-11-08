@@ -67,13 +67,13 @@ test.describe("QuantaEdge corporate website", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("product links open their public live sites and never route visitors to GitHub", async ({ page }) => {
+  test("product links open their public live applications and never route visitors to GitHub", async ({ page }) => {
     await page.goto("/");
 
     const destinations = [
       { name: "mPay", url: "https://mpay.quantaedge.in/" },
       { name: "QuantaEdge Learning", url: "https://qe.quantaedge.in/" },
-      { name: "Lucky Bajaj Dealership", url: "https://lucky-bajaj-customer-web.onrender.com/" },
+      { name: "Lucky Bajaj Dealership", url: "https://luckybajaj.quantaedge.in/" },
       { name: "SmartPrint", url: "https://smartprint.quantaedge.in/" }
     ];
 
@@ -84,12 +84,12 @@ test.describe("QuantaEdge corporate website", () => {
       });
       await expect(card).toHaveCount(1);
 
-      const cardLink = card.getByRole("link", { name: `Visit ${product.name} live site` });
+      const cardLink = card.getByRole("link", { name: `Visit ${product.name} live application` });
       await expect(cardLink).toHaveAttribute("href", product.url);
       await expect(cardLink).toHaveAttribute("target", "_blank");
       await expect(cardLink).toHaveAttribute("rel", "noopener noreferrer");
 
-      const footerLink = footerProducts.getByRole("link", { name: `Visit ${product.name} live site` });
+      const footerLink = footerProducts.getByRole("link", { name: `Visit ${product.name} live application` });
       await expect(footerLink).toHaveAttribute("href", product.url);
       await expect(footerLink).toHaveAttribute("target", "_blank");
       await expect(footerLink).toHaveAttribute("rel", "noopener noreferrer");
