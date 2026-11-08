@@ -38,7 +38,7 @@ if ($SitePort -gt 0) {
   $env:SITE_PORT = [string]$SitePort
 }
 
-$env:COMPOSE_PROJECT_NAME = "quantaedge-site"
+$env:COMPOSE_PROJECT_NAME = "quantaedge-corporate"
 $env:SITE_IMAGE = if ($env:SITE_IMAGE) { $env:SITE_IMAGE } else { "ghcr.io/manav326/quantaedge-site" }
 
 if (-not (Test-Path ".env")) {
