@@ -17,6 +17,32 @@ async function revealEntirePage(page: import("@playwright/test").Page) {
 
 
 test.describe("QuantaEdge corporate website", () => {
+  test("publishes the Smart Print by QuantaEdge product relationship for crawlers", async ({ page }) => {
+    await page.goto("/");
+
+    const smartPrintCard = page.locator(".product-card").filter({
+      has: page.getByRole("heading", { name: "SmartPrint", exact: true })
+    });
+    await expect(smartPrintCard).toContainText("Smart Print by QuantaEdge");
+
+    const schemaText = await page.locator('script[type="application/ld+json"]').textContent();
+    expect(schemaText).toBeTruthy();
+    const schema = JSON.parse(schemaText!);
+    const graph = schema["@graph"] as Array<Record<string, any>>;
+    const organizationId = "https://quantaedge.in/#organization";
+    const smartPrint = graph.find((node) => node["@id"] === "https://smartprint.quantaedge.in/#software");
+    const organization = graph.find((node) => node["@id"] === organizationId);
+
+    expect(smartPrint).toMatchObject({
+      "@type": "SoftwareApplication",
+      name: "SmartPrint",
+      alternateName: "Smart Print by QuantaEdge",
+      url: "https://smartprint.quantaedge.in/",
+      publisher: { "@id": organizationId }
+    });
+    expect(organization?.makesOffer?.itemOffered?.["@id"]).toBe("https://smartprint.quantaedge.in/#software");
+  });
+
   test("desktop: renders the corporate story and all four product showcases", async ({ page }, testInfo) => {
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
